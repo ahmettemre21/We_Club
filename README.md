@@ -29,9 +29,9 @@ WeClub, RISE Testnet üzerinde NFT pasaportlar ve DAO yönetişimi ile gerçek �
 - **shadcn/ui**: UI komponnetleri
 
 ### RISE Entegrasyonu
-- **Chain ID**: 60000 (RISE Testnet)
-- **RPC**: https://rpc.testnet.risechain.com
-- **Explorer**: https://explorer.testnet.risechain.com
+- **Chain ID**: 11155931 (RISE Testnet)
+- **RPC**: https://testnet.riselabs.xyz
+- **Explorer**: https://explorer.testnet.riselabs.xyz
 
 ## 🛠️ Kurulum
 
@@ -44,8 +44,8 @@ WeClub, RISE Testnet üzerinde NFT pasaportlar ve DAO yönetişimi ile gerçek �
 
 1. **Projeyi klonlayın**
 ```bash
-git clone https://github.com/your-username/weclub-on-rise
-cd weclub-on-rise
+git clone https://github.com/ahmettemre21/We_Club
+cd We_Club
 ```
 
 2. **Bağımlılıkları yükleyin**
