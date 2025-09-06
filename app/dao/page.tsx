@@ -102,6 +102,11 @@ export default function DAOPage() {
   ]
 
   // Eğer kontrat çalışmıyorsa mock data kullan
+  // Debug için
+  console.log('processedProposals.length:', processedProposals.length)
+  console.log('allProposals:', allProposals)
+  
+  // Mock data'yı her zaman göster (demo için)
   const displayProposals = processedProposals.length > 0 ? processedProposals : mockProposals
 
   // Proposal oluşturma
@@ -351,7 +356,7 @@ export default function DAOPage() {
                          <ul className="text-sm text-blue-800 space-y-1">
                            <li>• Her üye sadece bir kez oy kullanabilir</li>
                            <li>• Oylar on-chain olarak kaydedilir</li>
-                           <li>• NFT Sahipliği: {hasNFT ? '✅ Var' : '❌ Yok'}</li>
+                           <li>• NFT Sahipliği: {hasNFT ? 'Var' : 'Yok'}</li>
                            <li>• Oylama gücünüz: {votingPower?.toString()}</li>
                            <li>• Proposal'lar gerçek zamanlı güncellenir</li>
                          </ul>
@@ -373,7 +378,7 @@ export default function DAOPage() {
                         Proposal oluşturmak için YAWZ Passport NFT sahibi olmanız gerekiyor.
                       </p>
                       <p className="text-sm text-gray-500">
-                        NFT Sahipliği: {hasNFT ? '✅ Var' : '❌ Yok'} | 
+                        NFT Sahipliği: {hasNFT ? 'Var' : 'Yok'} | 
                         Oylama Gücü: {votingPower?.toString() || '0'}
                       </p>
                     </div>

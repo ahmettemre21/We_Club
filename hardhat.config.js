@@ -1,8 +1,9 @@
-require("@nomicfoundation/hardhat-ethers");
-require("@nomicfoundation/hardhat-verify");
-require("dotenv").config();
 
-module.exports = {
+
+import dotenv from "dotenv"
+dotenv.config();
+
+const config = {
   solidity: {
     version: "0.8.20",
     settings: {
@@ -14,18 +15,20 @@ module.exports = {
   },
   networks: {
     rise: {
-      url: process.env.RISE_RPC_URL || "https://rpc.testnet.risechain.com",
-      chainId: 60000,
+      type: "http",
+      url: "https://testnet.riselabs.xyz",
+      chainId: 11155931,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
-    hardhat: {
-      chainId: 31337
-    }
   },
   paths: {
     sources: "./contracts",
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts"
+  },
+  ignition: {
+    moduleDir: "./ignition/modules"
   }
 };
+export default config;

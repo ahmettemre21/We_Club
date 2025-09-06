@@ -1,54 +1,54 @@
+import { ignition } from "@nomicfoundation/hardhat-ignition";
 import { ethers } from "hardhat";
+import DeployAllModule from "../ignition/modules/DeployAll";
 
 async function main() {
-  console.log("🚀 RISE Testnet'e deploy başlıyor...");
-  
-  const [deployer] = await ethers.getSigners();
-  console.log("Deploy eden adres:", deployer.address);
-  
-  const balance = await ethers.provider.getBalance(deployer.address);
-  console.log("Hesap bakiyesi:", ethers.formatEther(balance), "ETH");
-  
-  // PassportNFT deploy
-  console.log("\n📝 PassportNFT deploy ediliyor...");
-  const PassportNFT = await ethers.getContractFactory("PassportNFT");
-  const passportNFT = await PassportNFT.deploy();
-  await passportNFT.waitForDeployment();
-  const passportAddress = await passportNFT.getAddress();
-  console.log("✅ PassportNFT deployed to:", passportAddress);
-  
-  // WeClubDAO deploy
-  console.log("\n🏛️ WeClubDAO deploy ediliyor...");
-  const WeClubDAO = await ethers.getContractFactory("WeClubDAO");
-  const weClubDAO = await WeClubDAO.deploy();
-  await weClubDAO.waitForDeployment();
-  const daoAddress = await weClubDAO.getAddress();
-  console.log("✅ WeClubDAO deployed to:", daoAddress);
-  
-  // Deploy bilgilerini kaydet
-  const deployInfo = {
-    network: "RISE Testnet",
-    chainId: 60000,
-    deployer: deployer.address,
-    contracts: {
-      PassportNFT: passportAddress,
-      WeClubDAO: daoAddress
-    },
-    deployedAt: new Date().toISOString()
-  };
-  
-  console.log("\n📋 Deploy Özeti:");
-  console.log(JSON.stringify(deployInfo, null, 2));
-  
-  // Kontratları .env.local'e kaydetmek için bilgileri yazdır
-  console.log("\n⚠️  Aşağıdaki satırları .env.local dosyanıza ekleyin:");
-  console.log(`NEXT_PUBLIC_PASSPORT_NFT_ADDRESS=${passportAddress}`);
-  console.log(`NEXT_PUBLIC_DAO_ADDRESS=${daoAddress}`);
+  console.log("🚀 WeClub Platform kontratları deploy ediliyor...\n");
+
+  try {
+    // Ignition kullanarak tüm kontratları deploy et
+    const { weClubDAO, passportNFT } = await ignition.deploy(DeployAllModule);
+
+    console.log("✅ Deploy işlemi başarıyla tamamlandı!\n");
+    
+    console.log("📋 Deploy Edilen Kontratlar:");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log(`🏛️  WeClubDAO:     ${await weClubDAO.getAddress()}`);
+    console.log(`🎫 PassportNFT:    ${await passportNFT.getAddress()}`);
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
+    // Kontrat bilgilerini doğrula
+    console.log("🔍 Kontrat Bilgileri:");
+    
+    // WeClubDAO bilgileri
+    const proposalCount = await weClubDAO.proposalCount();
+    console.log(`📊 WeClubDAO - Mevcut Proposal Sayısı: ${proposalCount}`);
+    
+    // PassportNFT bilgileri
+    const nftName = await passportNFT.name();
+    const nftSymbol = await passportNFT.symbol();
+    console.log(`🎫 PassportNFT - İsim: ${nftName}`);
+    console.log(`🎫 PassportNFT - Sembol: ${nftSymbol}\n`);
+
+    // Deploy eden hesap bilgileri
+    const [deployer] = await ethers.getSigners();
+    console.log("👤 Deploy Eden Hesap:");
+    console.log(`   Adres: ${deployer.address}`);
+    console.log(`   Bakiye: ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))} ETH\n`);
+
+    console.log("🎉 Tüm kontratlar başarıyla deploy edildi!");
+    console.log("💡 Artık frontend uygulamanızda bu adresleri kullanabilirsiniz.");
+
+  } catch (error) {
+    console.error("❌ Deploy işlemi sırasında hata oluştu:", error);
+    process.exit(1);
+  }
 }
 
+// Script'i çalıştır
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error(error);
+    console.error("❌ Beklenmeyen hata:", error);
     process.exit(1);
   });
