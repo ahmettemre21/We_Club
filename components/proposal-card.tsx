@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAccount, useWriteContract, useReadContract } from 'wagmi'
-import { WECLUB_DAO_ABI } from '@/lib/contracts'
+import { WECLUB_DAO_ABI, PASSPORT_NFT_ABI } from '@/lib/contracts'
 import { formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { CheckCircle2, Clock, Users, Vote } from 'lucide-react'
@@ -14,9 +14,10 @@ interface ProposalCardProps {
   proposalId: number
   contractAddress: string
   onVoteSuccess?: () => void
+  passportNftAddress?: string
 }
 
-export function ProposalCard({ proposalId, contractAddress, onVoteSuccess }: ProposalCardProps) {
+export function ProposalCard({ proposalId, contractAddress, onVoteSuccess, passportNftAddress }: ProposalCardProps) {
   const { address } = useAccount()
   
   // Proposal detaylarını al
@@ -34,6 +35,16 @@ export function ProposalCard({ proposalId, contractAddress, onVoteSuccess }: Pro
     functionName: 'hasVoted',
     args: address ? [BigInt(proposalId), address] : undefined,
   })
+
+  // NFT sahiplik kontrolü
+  const { data: nftBalance } = useReadContract({
+    address: passportNftAddress as `0x${string}`,
+    abi: PASSPORT_NFT_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+  })
+
+  const hasNFT = nftBalance && Number(nftBalance) > 0
 
   // Oy kullanma fonksiyonu
   const { writeContract, isLoading: isVoting } = useWriteContract()
@@ -118,42 +129,51 @@ export function ProposalCard({ proposalId, contractAddress, onVoteSuccess }: Pro
         </div>
       </CardContent>
       
-      <CardFooter>
-        {!address ? (
-          <p className="text-sm text-muted-foreground">
-            Oy kullanmak için cüzdanınızı bağlayın
-          </p>
-        ) : hasVoted ? (
-          <div className="w-full">
-            <Badge variant="outline" className="text-green-600 mb-2">
-              ✓ Oy kullandınız
-            </Badge>
-            <p className="text-xs text-muted-foreground">
-              Teşekkürler! Oyunuz kaydedildi.
-            </p>
-          </div>
-        ) : executed ? (
-          <Badge variant="secondary">
-            Oylama sona erdi
-          </Badge>
-        ) : (
-          <div className="w-full space-y-2">
-            <Button 
-              onClick={handleVote} 
-              disabled={isVoting || isVotingState}
-              className="w-full"
-            >
-              <Vote className="w-4 h-4 mr-1" />
-              {isVoting || isVotingState ? 'Oy Kullanılıyor...' : 'Oy Ver'}
-            </Button>
-            {isVotingState && (
-              <p className="text-xs text-green-600 text-center">
-                Oyunuz gönderiliyor...
-              </p>
-            )}
-          </div>
-        )}
-      </CardFooter>
+             <CardFooter>
+               {!address ? (
+                 <p className="text-sm text-muted-foreground">
+                   Oy kullanmak için cüzdanınızı bağlayın
+                 </p>
+               ) : !hasNFT ? (
+                 <div className="w-full">
+                   <Badge variant="outline" className="text-orange-600 mb-2">
+                     🔒 NFT Gerekli
+                   </Badge>
+                   <p className="text-xs text-muted-foreground">
+                     Oy kullanmak için YAWZ Passport NFT sahibi olmanız gerekiyor.
+                   </p>
+                 </div>
+               ) : hasVoted ? (
+                 <div className="w-full">
+                   <Badge variant="outline" className="text-green-600 mb-2">
+                     ✓ Oy kullandınız
+                   </Badge>
+                   <p className="text-xs text-muted-foreground">
+                     Teşekkürler! Oyunuz kaydedildi.
+                   </p>
+                 </div>
+               ) : executed ? (
+                 <Badge variant="secondary">
+                   Oylama sona erdi
+                 </Badge>
+               ) : (
+                 <div className="w-full space-y-2">
+                   <Button
+                     onClick={handleVote}
+                     disabled={isVoting || isVotingState}
+                     className="w-full"
+                   >
+                     <Vote className="w-4 h-4 mr-1" />
+                     {isVoting || isVotingState ? 'Oy Kullanılıyor...' : 'Oy Ver'}
+                   </Button>
+                   {isVotingState && (
+                     <p className="text-xs text-green-600 text-center">
+                       Oyunuz gönderiliyor...
+                     </p>
+                   )}
+                 </div>
+               )}
+             </CardFooter>
     </Card>
   )
 }

@@ -9,6 +9,7 @@ import { ProposalCard } from '@/components/proposal-card'
 import { WalletConnect } from '@/components/wallet-connect'
 import { useAccount, useReadContract, useWriteContract, useSwitchChain } from 'wagmi'
 import { WECLUB_DAO_ABI } from '@/lib/contracts'
+import { PASSPORT_NFT_ABI } from '@/lib/contracts'
 import { Plus, Users, Vote, BarChart3, Shield } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +17,7 @@ import { useAuth } from '@/components/auth-provider'
 
 // Demo kontrat adresi - gerçek deploy sonrası güncellenecek
 const DAO_ADDRESS = process.env.NEXT_PUBLIC_DAO_ADDRESS || '0x1234567890123456789012345678901234567890'
+const PASSPORT_NFT_ADDRESS = process.env.NEXT_PUBLIC_PASSPORT_NFT_ADDRESS || '0x0000000000000000000000000000000000000000'
 
 export default function DAOPage() {
   const { address, isConnected, chainId } = useAccount()
@@ -50,6 +52,16 @@ export default function DAOPage() {
   
   // Auth'dan gelen voting power'ı kullan, yoksa kontrattan al
   const votingPower = user?.votingPower || contractVotingPower || 0
+
+  // NFT sahiplik kontrolü
+  const { data: nftBalance } = useReadContract({
+    address: PASSPORT_NFT_ADDRESS as `0x${string}`,
+    abi: PASSPORT_NFT_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+  })
+
+  const hasNFT = nftBalance && Number(nftBalance) > 0
 
   // Tüm proposalları al - 5 saniyede bir yenile
   const { data: allProposals, refetch: refetchProposals } = useReadContract({
@@ -245,6 +257,18 @@ export default function DAOPage() {
           </div>
         )}
 
+        {/* NFT Warning */}
+        {isConnected && !hasNFT && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <span className="text-orange-800 font-medium">
+                YAWZ Passport NFT'niz yok. Oy kullanmak için NFT sahibi olmanız gerekiyor.
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Main Content */}
         {isConnected ? (
           <Tabs defaultValue="proposals" className="space-y-6">
@@ -270,6 +294,7 @@ export default function DAOPage() {
                          key={proposal.id} 
                          proposalId={proposal.id} 
                          contractAddress={DAO_ADDRESS}
+                         passportNftAddress={PASSPORT_NFT_ADDRESS}
                          onVoteSuccess={() => refetchProposals()}
                        />
                      ))}
@@ -298,7 +323,7 @@ export default function DAOPage() {
                   <CardTitle>Yeni Proposal Oluştur</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {user && Number(votingPower || 0) > 0 ? (
+                  {user && (hasNFT || Number(votingPower || 0) > 0) ? (
                     <>
                       <div>
                         <label className="block text-sm font-medium mb-2">Başlık</label>
@@ -326,6 +351,7 @@ export default function DAOPage() {
                          <ul className="text-sm text-blue-800 space-y-1">
                            <li>• Her üye sadece bir kez oy kullanabilir</li>
                            <li>• Oylar on-chain olarak kaydedilir</li>
+                           <li>• NFT Sahipliği: {hasNFT ? '✅ Var' : '❌ Yok'}</li>
                            <li>• Oylama gücünüz: {votingPower?.toString()}</li>
                            <li>• Proposal'lar gerçek zamanlı güncellenir</li>
                          </ul>
@@ -343,8 +369,12 @@ export default function DAOPage() {
                     <div className="text-center py-8">
                       <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold mb-2">Yetkiniz Yok</h3>
-                      <p className="text-gray-600">
-                        Proposal oluşturmak için DAO üyesi olmanız gerekiyor.
+                      <p className="text-gray-600 mb-2">
+                        Proposal oluşturmak için YAWZ Passport NFT sahibi olmanız gerekiyor.
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        NFT Sahipliği: {hasNFT ? '✅ Var' : '❌ Yok'} | 
+                        Oylama Gücü: {votingPower?.toString() || '0'}
                       </p>
                     </div>
                   )}
