@@ -144,7 +144,7 @@ export default function Navbar() {
               </Button>
             </div>
             <div className="p-4 space-y-4">
-              {isLoggedIn && (
+              {user && (
                 <div className="pb-4 border-b">
                   <p className="font-medium text-gray-900">{userData.name}</p>
                   <div className="flex items-center justify-between mt-1">
